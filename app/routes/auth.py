@@ -25,7 +25,7 @@ ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -42,6 +42,25 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    
+    user = db.query(UserModel).filter(UserModel.email == email).first()
+    if user is None:
+        raise credentials_exception
+    return user
 
 @router.post(
     "/register",
@@ -109,4 +128,21 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"} 
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get(
+    "/session",
+    response_model=dict,
+    summary="Validate session",
+    description="Check if the current session is valid",
+    responses={
+        200: {"description": "Session is valid"},
+        401: {"description": "Invalid or expired session"}
+    }
+)
+async def validate_session(current_user: UserModel = Depends(get_current_user)):
+    """
+    Validate the current session using JWT token.
+    Returns 200 if session is valid, 401 if invalid or expired.
+    """
+    return {"status": "valid", "user_id": current_user.id}
