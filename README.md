@@ -41,7 +41,16 @@ cp .env.example .env
 # Edit .env with your configuration
 ```
 
-5. Run the application:
+5. Set up database migrations:
+```bash
+# Create a new migration
+alembic revision --autogenerate -m "Initial migration"
+
+# Apply migrations to the database
+alembic upgrade head
+```
+
+6. Run the application:
 ```bash
 uvicorn app.main:app --reload
 ```
