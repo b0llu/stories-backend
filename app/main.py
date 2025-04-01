@@ -1,7 +1,8 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
+from fastapi.responses import JSONResponse
 
 from app.routes import auth, stories, user
 from app.middleware.jwt_middleware import JWTMiddleware
@@ -33,9 +34,19 @@ async def authenticate_requests(request: Request, call_next):
     """
     Global middleware to authenticate all requests except public paths
     """
-    await jwt_middleware(request)
-    response = await call_next(request)
-    return response
+    try:
+        # Authenticate the request
+        await jwt_middleware(request)
+        # If authentication succeeds, continue with the request
+        response = await call_next(request)
+        return response
+    except HTTPException as e:
+        # Return the HTTP exception as a response
+        return JSONResponse(
+            status_code=e.status_code,
+            content={"detail": e.detail},
+            headers=e.headers
+        )
 
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])

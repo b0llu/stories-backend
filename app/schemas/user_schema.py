@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, UUID4
 from datetime import datetime
 from typing import List, Optional
 
@@ -15,7 +15,7 @@ class UserCreate(UserBase):
     )
 
 class User(UserBase):
-    id: int = Field(..., description="Unique identifier for the user")
+    id: UUID4 = Field(..., description="Unique identifier for the user")
     created_at: datetime = Field(..., description="Timestamp when the user was created")
     updated_at: Optional[datetime] = Field(None, description="Timestamp when the user was last updated")
 
@@ -23,7 +23,7 @@ class User(UserBase):
         from_attributes = True
         json_schema_extra = {
             "example": {
-                "id": 1,
+                "id": "123e4567-e89b-12d3-a456-426614174000",
                 "email": "user@example.com",
                 "created_at": "2024-03-31T12:00:00",
                 "updated_at": "2024-03-31T13:00:00"

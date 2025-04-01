@@ -6,7 +6,7 @@ from datetime import datetime
 from app.database import get_db
 from app.models.story import Story as StoryModel
 from app.models.user import User as UserModel
-from app.schemas.story import Story, StoryCreate
+from app.schemas.story_schema import Story, StoryCreate
 
 router = APIRouter(
     tags=["stories"],

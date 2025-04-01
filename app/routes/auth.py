@@ -5,7 +5,7 @@ from datetime import timedelta
 
 from app.database import get_db
 from app.models.user import User as UserModel
-from app.schemas.user import User, UserCreate
+from app.schemas.user_schema import User, UserCreate
 from app.utils.jwt_utils import (
     verify_password,
     get_password_hash,

@@ -1,4 +1,4 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from typing import Optional
 from app.models.user import User
@@ -25,13 +25,15 @@ class JWTMiddleware:
             "/openapi.json"
         }
     
-    async def __call__(self, request) -> Optional[User]:
+    async def __call__(self, request: Request) -> Optional[User]:
         """
         Check if the request path requires authentication and verify the JWT token
         """
+        # Skip authentication for public paths
         if request.url.path in self.public_paths:
             return None
             
+        # Get the token from the request
         token = await oauth2_scheme(request)
         if not token:
             raise HTTPException(
@@ -40,4 +42,12 @@ class JWTMiddleware:
                 headers={"WWW-Authenticate": "Bearer"},
             )
             
-        return await get_current_user(token) 
+        try:
+            # Verify the token and get the user
+            return await get_current_user(token)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            ) 
