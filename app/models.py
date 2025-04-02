@@ -47,7 +47,7 @@ class User(Base):
         backref="followers"
     )
     liked_stories = relationship("Story", secondary=user_liked_stories, back_populates="liked_by")
-    seen_stories = relationship("Story", secondary=user_seen_stories, back_populates="seen_stories")
+    seen_stories = relationship("Story", secondary=user_seen_stories, back_populates="seen_by")
 
 class Story(Base):
     __tablename__ = "stories"

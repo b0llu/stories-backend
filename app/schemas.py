@@ -1,6 +1,7 @@
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, UUID4, HttpUrl
+from uuid import UUID
 
 class UserBase(BaseModel):
     email: EmailStr
@@ -13,10 +14,31 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+class ProfileUpdate(BaseModel):
+    fullname: Optional[str] = None
+    bio: Optional[str] = None
+    birthday: Optional[datetime] = None
+    profile_picture: Optional[str] = None
+
 class User(UserBase):
-    id: int
+    id: UUID
+    fullname: Optional[str] = None
+    bio: Optional[str] = None
+    birthday: Optional[datetime] = None
+    profile_picture: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class UserPublic(BaseModel):
+    id: UUID
+    username: str
+    fullname: Optional[str] = None
+    bio: Optional[str] = None
+    profile_picture: Optional[str] = None
+    created_at: datetime
 
     class Config:
         from_attributes = True
@@ -27,3 +49,28 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: Optional[str] = None
+
+class StoryBase(BaseModel):
+    media_url: str
+    caption: Optional[str] = None
+
+class StoryCreate(StoryBase):
+    pass
+
+class Story(StoryBase):
+    id: UUID
+    user_id: UUID
+    is_active: bool
+    likes_count: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    user: UserPublic
+
+    class Config:
+        from_attributes = True
+
+class StoryWithSeenBy(Story):
+    seen_by: List[UserPublic]
+
+    class Config:
+        from_attributes = True

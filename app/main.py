@@ -4,7 +4,7 @@ import os
 import json
 from dotenv import load_dotenv
 
-from .routers import auth
+from .routers import auth, users, stories
 from . import models
 from .database import engine
 
@@ -38,7 +38,9 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth.router, prefix=API_PREFIX + "/auth", tags=["auth"])
+app.include_router(users.router, prefix=API_PREFIX + "/users", tags=["users"])
+app.include_router(stories.router, prefix=API_PREFIX + "/stories", tags=["stories"])
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to the FastAPI Authentication API"}
+    return {"message": "Welcome to the Stories API"}
