@@ -1,6 +1,6 @@
 from datetime import timedelta
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
@@ -12,24 +12,11 @@ from ..auth.utils import (
     create_access_token,
     verify_token,
     ACCESS_TOKEN_EXPIRE_MINUTES,
+    get_current_user_from_request
 )
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
-
-async def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
-    db: Session = Depends(get_db)
-) -> models.User:
-    payload = verify_token(token)
-    email: str = payload.get("sub")
-    if email is None:
-        raise HTTPException(status_code=401, detail="Could not validate credentials")
-    
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if user is None:
-        raise HTTPException(status_code=401, detail="User not found")
-    return user
 
 @router.post("/register", response_model=schemas.User)
 async def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -86,7 +73,7 @@ async def login(
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.get("/check-session", response_model=schemas.User)
-async def check_session(
-    current_user: Annotated[models.User, Depends(get_current_user)]
-):
+async def check_session(request: Request):
+    """Check if the user's session is valid and return the user information"""
+    current_user = get_current_user_from_request(request)
     return current_user 

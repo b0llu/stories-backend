@@ -1,21 +1,22 @@
 from typing import Annotated, List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from uuid import UUID
 
 from .. import models, schemas
 from ..database import get_db
-from ..routers.auth import get_current_user
+from ..auth.utils import get_current_user_from_request
 
 router = APIRouter()
 
 @router.put("/me", response_model=schemas.User)
 async def update_profile(
     profile_data: schemas.ProfileUpdate,
-    current_user: Annotated[models.User, Depends(get_current_user)],
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """Update the current user's profile information"""
+    current_user = get_current_user_from_request(request)
     
     # Update user fields if they are provided
     if profile_data.fullname is not None:
@@ -32,11 +33,9 @@ async def update_profile(
     return current_user
 
 @router.get("/me", response_model=schemas.User)
-async def get_current_user_profile(
-    current_user: Annotated[models.User, Depends(get_current_user)]
-):
+async def get_current_user_profile(request: Request):
     """Get the current user's profile information"""
-    return current_user
+    return get_current_user_from_request(request)
 
 @router.get("/{user_id}", response_model=schemas.UserPublic)
 async def get_user_profile(
@@ -52,10 +51,12 @@ async def get_user_profile(
 @router.post("/{user_id}/follow", response_model=schemas.UserPublic)
 async def follow_user(
     user_id: UUID,
-    current_user: Annotated[models.User, Depends(get_current_user)],
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """Follow a user"""
+    current_user = get_current_user_from_request(request)
+    
     # Check if user exists
     user_to_follow = db.query(models.User).filter(models.User.id == user_id).first()
     if user_to_follow is None:
@@ -78,10 +79,12 @@ async def follow_user(
 @router.delete("/{user_id}/unfollow", response_model=schemas.UserPublic)
 async def unfollow_user(
     user_id: UUID,
-    current_user: Annotated[models.User, Depends(get_current_user)],
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """Unfollow a user"""
+    current_user = get_current_user_from_request(request)
+    
     # Check if user exists
     user_to_unfollow = db.query(models.User).filter(models.User.id == user_id).first()
     if user_to_unfollow is None:
@@ -98,15 +101,13 @@ async def unfollow_user(
     return user_to_unfollow
 
 @router.get("/me/followers", response_model=List[schemas.UserPublic])
-async def get_my_followers(
-    current_user: Annotated[models.User, Depends(get_current_user)]
-):
+async def get_my_followers(request: Request):
     """Get list of users who follow the current user"""
+    current_user = get_current_user_from_request(request)
     return current_user.followers
 
 @router.get("/me/following", response_model=List[schemas.UserPublic])
-async def get_my_following(
-    current_user: Annotated[models.User, Depends(get_current_user)]
-):
+async def get_my_following(request: Request):
     """Get list of users that the current user follows"""
+    current_user = get_current_user_from_request(request)
     return current_user.following 

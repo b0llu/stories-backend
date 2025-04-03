@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from .routers import auth, users, stories
 from . import models
 from .database import engine
+from .middleware.auth import AuthMiddleware
 
 load_dotenv()
 
@@ -35,6 +36,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add authentication middleware
+app.add_middleware(AuthMiddleware)
 
 # Include routers
 app.include_router(auth.router, prefix=API_PREFIX + "/auth", tags=["auth"])

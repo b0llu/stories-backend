@@ -1,21 +1,23 @@
 from typing import Annotated, List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from uuid import UUID
 
 from .. import models, schemas
 from ..database import get_db
-from ..routers.auth import get_current_user
+from ..auth.utils import get_current_user_from_request
 
 router = APIRouter()
 
 @router.post("/", response_model=schemas.Story)
 async def create_story(
     story_data: schemas.StoryCreate,
-    current_user: Annotated[models.User, Depends(get_current_user)],
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """Create a new story"""
+    current_user = get_current_user_from_request(request)
+    
     # Create new story
     new_story = models.Story(
         media_url=story_data.media_url,
@@ -30,12 +32,14 @@ async def create_story(
 
 @router.get("/", response_model=List[schemas.Story])
 async def get_stories(
-    current_user: Annotated[models.User, Depends(get_current_user)],
+    request: Request,
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
     """Get stories from users the current user follows and their own stories"""
+    current_user = get_current_user_from_request(request)
+    
     # Get IDs of users the current user follows
     following_ids = [user.id for user in current_user.following]
     following_ids.append(current_user.id)  # Include own stories
@@ -50,10 +54,12 @@ async def get_stories(
 
 @router.get("/me", response_model=List[schemas.Story])
 async def get_my_stories(
-    current_user: Annotated[models.User, Depends(get_current_user)],
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """Get all stories created by the current user"""
+    current_user = get_current_user_from_request(request)
+    
     stories = db.query(models.Story).filter(
         models.Story.user_id == current_user.id
     ).order_by(models.Story.created_at.desc()).all()
@@ -63,10 +69,12 @@ async def get_my_stories(
 @router.get("/{story_id}", response_model=schemas.StoryWithSeenBy)
 async def get_story(
     story_id: UUID,
-    current_user: Annotated[models.User, Depends(get_current_user)],
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """Get a specific story by ID"""
+    current_user = get_current_user_from_request(request)
+    
     story = db.query(models.Story).filter(models.Story.id == story_id).first()
     if story is None:
         raise HTTPException(status_code=404, detail="Story not found")
@@ -83,10 +91,12 @@ async def get_story(
 @router.post("/{story_id}/like", response_model=schemas.Story)
 async def like_story(
     story_id: UUID,
-    current_user: Annotated[models.User, Depends(get_current_user)],
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """Like a story"""
+    current_user = get_current_user_from_request(request)
+    
     # Get story
     story = db.query(models.Story).filter(models.Story.id == story_id).first()
     if story is None:
@@ -107,10 +117,12 @@ async def like_story(
 @router.delete("/{story_id}/unlike", response_model=schemas.Story)
 async def unlike_story(
     story_id: UUID,
-    current_user: Annotated[models.User, Depends(get_current_user)],
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """Remove like from a story"""
+    current_user = get_current_user_from_request(request)
+    
     # Get story
     story = db.query(models.Story).filter(models.Story.id == story_id).first()
     if story is None:
@@ -131,10 +143,12 @@ async def unlike_story(
 @router.post("/{story_id}/seen", response_model=schemas.Story)
 async def mark_story_as_seen(
     story_id: UUID,
-    current_user: Annotated[models.User, Depends(get_current_user)],
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """Explicitly mark a story as seen by the current user"""
+    current_user = get_current_user_from_request(request)
+    
     # Get story
     story = db.query(models.Story).filter(models.Story.id == story_id).first()
     if story is None:
