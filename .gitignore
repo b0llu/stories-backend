@@ -1,9 +1,24 @@
 .env
 .venv
+
+# Python cache files - comprehensive patterns
 **/__pycache__/
-*.pyc
-*.pyo
-*.pyd
+**/*.py[cod]
+**/*$py.class
+
+# Explicit app directory patterns
+app/**/__pycache__/
+app/**/*.pyc
+app/**/*.pyo
+app/**/*.pyd
+
+# Other Python compiled files
+*.so
+.Python
 *.pyw
 *.pyz
-alembic/versions/__pycache__
+
+# Specific directories
+alembic/versions/__pycache__/
+
+.vscode/
