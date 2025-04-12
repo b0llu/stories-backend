@@ -8,8 +8,12 @@ from .routers import auth, users, stories
 from . import models
 from .database import engine
 from .middleware.auth import AuthMiddleware
+from .utils.cloudinary import init_cloudinary
 
 load_dotenv()
+
+# Initialize Cloudinary
+init_cloudinary()
 
 # Create all tables in the database
 # Comment this out if you're using Alembic for migrations

@@ -1,27 +1,37 @@
 from typing import Annotated, List
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from uuid import UUID
 
 from .. import models, schemas
 from ..database import get_db
 from ..auth.utils import get_current_user_from_request
+from ..utils.cloudinary import upload_media
 
 router = APIRouter()
 
 @router.post("/", response_model=schemas.Story)
 async def create_story(
-    story_data: schemas.StoryCreate,
     request: Request,
+    media_file: UploadFile = File(...),
+    caption: str = Form(None),
     db: Session = Depends(get_db)
 ):
-    """Create a new story"""
+    """Create a new story with media upload"""
     current_user = get_current_user_from_request(request)
+    
+    # Upload media to Cloudinary
+    media_url = await upload_media(media_file)
+    if not media_url:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to upload media"
+        )
     
     # Create new story
     new_story = models.Story(
-        media_url=story_data.media_url,
-        caption=story_data.caption,
+        media_url=media_url,
+        caption=caption,
         user_id=current_user.id
     )
     

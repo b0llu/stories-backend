@@ -2,6 +2,7 @@ from typing import Optional, List
 from datetime import datetime
 from pydantic import BaseModel, EmailStr, UUID4, HttpUrl
 from uuid import UUID
+from fastapi import UploadFile
 
 class UserBase(BaseModel):
     email: EmailStr
@@ -51,15 +52,16 @@ class TokenData(BaseModel):
     email: Optional[str] = None
 
 class StoryBase(BaseModel):
-    media_url: str
     caption: Optional[str] = None
 
-class StoryCreate(StoryBase):
-    pass
+class StoryCreate(BaseModel):
+    caption: Optional[str] = None
 
-class Story(StoryBase):
+class Story(BaseModel):
     id: UUID
     user_id: UUID
+    media_url: str
+    caption: Optional[str] = None
     is_active: bool
     likes_count: int
     created_at: datetime
