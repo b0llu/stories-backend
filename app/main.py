@@ -20,7 +20,7 @@ init_cloudinary()
 models.Base.metadata.create_all(bind=engine)
 
 API_VERSION = os.getenv("API_VERSION", "v1")
-API_PREFIX = os.getenv("API_PREFIX", f"/api/{API_VERSION}")
+API_PREFIX = f"/api/{API_VERSION}"
 
 app = FastAPI(
     title="Stories API",
