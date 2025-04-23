@@ -10,7 +10,6 @@ from ..auth.utils import (
     verify_password,
     get_password_hash,
     create_access_token,
-    verify_token,
     ACCESS_TOKEN_EXPIRE_MINUTES,
     get_current_user_from_request
 )

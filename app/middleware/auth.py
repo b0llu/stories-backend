@@ -13,7 +13,6 @@ from ..auth.utils import verify_token
 PUBLIC_PATHS = [
     r"^/api/v\d+/auth/login$",
     r"^/api/v\d+/auth/register$",
-    r"^/api/v\d+/auth/check-session$",
     r"/docs$",
     r"/redoc$",
     r"^/api/v\d+/openapi.json$",

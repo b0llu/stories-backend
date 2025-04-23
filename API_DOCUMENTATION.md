@@ -12,7 +12,6 @@ Authorization: Bearer <your_access_token>
 Public endpoints that don't require authentication:
 - POST /api/v1/auth/login
 - POST /api/v1/auth/register
-- GET /api/v1/auth/check-session
 - GET /docs
 - GET /redoc
 - GET /api/v1/openapi.json
@@ -66,6 +65,28 @@ Public endpoints that don't require authentication:
     "token_type": "bearer"
 }
 ```
+
+### Check Session
+**Endpoint:** `GET /api/v1/auth/check-session`  
+**Authentication Required:** Yes
+
+**Response:** `200 OK`
+```json
+{
+    "id": "uuid",
+    "email": "string",
+    "username": "string",
+    "fullname": "string",
+    "bio": "string",
+    "birthday": "date",
+    "profile_picture": "string",
+    "created_at": "datetime",
+    "updated_at": "datetime"
+}
+```
+
+**Error Responses:**
+- `401 Unauthorized`: Invalid or missing authentication token
 
 ## User Endpoints
 
