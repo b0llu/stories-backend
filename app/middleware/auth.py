@@ -33,6 +33,11 @@ class AuthMiddleware:
         request = Request(scope)
         path = request.url.path
         
+        # Allow OPTIONS requests to pass through for CORS
+        if request.method == "OPTIONS":
+            await self.app(scope, receive, send)
+            return
+        
         # Skip authentication for public paths
         if any(re.match(pattern, path) for pattern in PUBLIC_PATHS):
             await self.app(scope, receive, send)
